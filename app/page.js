@@ -121,6 +121,7 @@ export default function Home() {
                     variant="outlined"
                     fullWidth
                     value={itemName}
+                    required={true}
                     placeholder="Item Name"
                     onChange={(e) => setItemName(e.target.value)}
                 >
@@ -138,6 +139,7 @@ export default function Home() {
                 <Button
                     variant="outlined"
                     fullWidth
+                    disabled={itemName.length === 0 || !newImage}
                     onClick={() => {
                         addItem(itemName)
                         setItemName('')
