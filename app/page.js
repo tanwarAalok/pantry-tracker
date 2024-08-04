@@ -5,11 +5,14 @@ import {useEffect, useState} from "react";
 import {collection, deleteDoc, doc, getDoc, getDocs, query, setDoc} from "firebase/firestore";
 import {firestore} from "@/firebase";
 import PantryItem from "@/components/PantryItem";
+import WebcamCapture from "@/components/Camera";
 
 export default function Home() {
     const [pantry, setPantry] = useState([]);
+    const [newImage, setNewImage] = useState(null);
     const [filteredPantry, setFilteredPantry] = useState([]);
     const [open, setOpen] = useState(false);
+    const [camera, setCamera] = useState(false);
     const [itemName, setItemName] = useState("");
 
     useEffect(() => {
@@ -34,15 +37,16 @@ export default function Home() {
 
 
     const addItem = async (item) => {
+
         const docRef = doc(collection(firestore, 'pantry'), item);
         const docSnap = await getDoc(docRef)
 
         if(docSnap.exists()){
-            const {quantity} = docSnap.data();
-            await setDoc(docRef, {quantity: quantity + 1});
+            const {quantity, img} = docSnap.data();
+            await setDoc(docRef, {quantity: quantity + 1, img});
         }
         else{
-            await setDoc(docRef, {quantity: 1});
+            await setDoc(docRef, {quantity: 1, img: newImage});
         }
 
         await updatePantry();
@@ -53,12 +57,12 @@ export default function Home() {
         const docSnap = await getDoc(docRef)
 
         if(docSnap.exists()){
-            const {quantity} = docSnap.data();
+            const {quantity, img} = docSnap.data();
             if(quantity === 1) {
                 await deleteDoc(docRef);
             }
             else {
-                await setDoc(docRef, {quantity: quantity - 1});
+                await setDoc(docRef, {quantity: quantity - 1, img});
             }
         }
 
@@ -90,6 +94,7 @@ export default function Home() {
         flexDirection="column"
         gap={3}
     >
+
         <Modal
             open={open}
             onClose={handleClose}
@@ -111,23 +116,36 @@ export default function Home() {
                 }}
             >
                 <Typography variant="h6">Add Item</Typography>
-                <Stack width="100%" direction="row" spacing={2}>
-                    <TextField
-                        variant="outlined"
-                        fullWidth
-                        value={itemName}
-                        onChange={(e) => setItemName(e.target.value)}
-                    >
-                    </TextField>
-                    <Button
-                        variant="outlined"
-                        onClick={() => {
-                            addItem(itemName)
-                            setItemName('')
-                            handleClose()
-                        }}
-                    >Add</Button>
-                </Stack>
+
+                <TextField
+                    variant="outlined"
+                    fullWidth
+                    value={itemName}
+                    placeholder="Item Name"
+                    onChange={(e) => setItemName(e.target.value)}
+                >
+                </TextField>
+
+                {
+                    camera ? <WebcamCapture newImage={newImage} setNewImage={setNewImage}/> : (
+                        <Button
+                            variant="outlined"
+                            onClick={() => setCamera(true)}
+                        >Add Image</Button>
+                    )
+                }
+
+                <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => {
+                        addItem(itemName)
+                        setItemName('')
+                        setNewImage(null)
+                        handleClose()
+                        setCamera(false)
+                    }}
+                >Add</Button>
             </Box>
         </Modal>
 
@@ -165,9 +183,10 @@ export default function Home() {
             spacing={2}
             overflow="auto"
         >
-            {itemsToDisplay.map(({ name, quantity }) => (
+            {itemsToDisplay.map(({ name, quantity, img }) => (
                 <PantryItem
                     key={name}
+                    imgSrc={img}
                     name={name}
                     quantity={quantity}
                     addItem={addItem}

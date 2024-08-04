@@ -1,6 +1,7 @@
 import {Box, Button, Stack, Typography} from "@mui/material";
+import Image from "next/image";
 
-const PantryItem = ({ name, quantity, addItem, removeItem }) => {
+const PantryItem = ({ name, quantity, addItem, removeItem, imgSrc }) => {
     return (
         <Box
             key={name}
@@ -11,6 +12,8 @@ const PantryItem = ({ name, quantity, addItem, removeItem }) => {
             bgcolor="#f0f0f0"
             padding={5}
         >
+            <Image src={imgSrc} alt={"img"} width={100} height={100}/>
+
             <Typography variant="h3" color="#333" textAlign="center" flex={1}>
                 {name.charAt(0).toUpperCase() + name.slice(1)}
             </Typography>
